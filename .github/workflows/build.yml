@@ -1,0 +1,83 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.asset }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            asset: ClaudeSessionCopy-windows-x64
+          - os: macos-latest
+            asset: ClaudeSessionCopy-macos-apple-silicon
+          - os: macos-15-intel
+            asset: ClaudeSessionCopy-macos-intel
+          - os: ubuntu-22.04
+            asset: ClaudeSessionCopy-linux-x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: python -m pip install --upgrade pip pyinstaller
+
+      - name: Tests
+        run: |
+          python -c "import tkinter; print('Tk', tkinter.TkVersion)"
+          python -m unittest discover -s tests -v
+          python -m claude_session_copy --version
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --name ClaudeSessionCopy run.py
+          mkdir -p out && cp dist/ClaudeSessionCopy.exe "out/${{ matrix.asset }}.exe"
+
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          pyinstaller --noconfirm --windowed --name "Claude Session Copy" \
+            --osx-bundle-identifier io.github.shivanshtalwar0.claudesessioncopy run.py
+          mkdir -p out && ditto -c -k --keepParent "dist/Claude Session Copy.app" "out/${{ matrix.asset }}.zip"
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          pyinstaller --noconfirm --onefile --name claude-session-copy run.py
+          mkdir -p out && tar -czf "out/${{ matrix.asset }}.tar.gz" -C dist claude-session-copy
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: out/*
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: out/*
+          generate_release_notes: true
