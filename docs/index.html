@@ -165,6 +165,15 @@
     .cta { margin: 90px 0 0; background: var(--ticket); color: var(--ticket-text); border-radius: 22px; padding: 48px; display: flex;
       align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
     .cta h2 { color: #fff; margin: 0; }
+    .sibling { margin: 28px 0 0; }
+    .sibling a { display: flex; align-items: center; gap: 22px; text-decoration: none; background: var(--card);
+      border: 1px solid var(--line); border-radius: 18px; padding: 18px 24px; transition: border-color .15s ease; }
+    .sibling a:hover { border-color: #c6cdd6; }
+    .sibling img { height: 38px; width: auto; flex: none; }
+    .sib-text { flex: 1; color: var(--body); font-size: 15px; line-height: 1.5; }
+    .sib-eyebrow { display: block; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .sib-cta { flex: none; font-weight: 700; font-size: 15px; color: var(--ink); white-space: nowrap; }
+    .sibling a:hover .sib-cta { color: var(--brand); }
     footer { padding: 46px 0 60px; color: var(--muted); font-size: 14px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
     footer a { color: var(--body); }
 
@@ -179,6 +188,7 @@
       .mascot { display: none; }
       .nav a:not(.gh) { display: none; }
       .cta { padding: 32px; }
+      .sibling a { flex-wrap: wrap; gap: 12px; }
     }
     @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
   </style>
@@ -352,8 +362,17 @@
       </div>
     </main>
 
+    <aside class="sibling" aria-label="Also from the makers of Claude Buddy">
+      <a href="https://voxmin.com/?utm_source=claudebuddy&utm_medium=referral&utm_campaign=site_card">
+        <img src="https://voxmin.com/logo_light.png" alt="Voxmin" width="847" height="299" loading="lazy">
+        <span class="sib-text"><span class="sib-eyebrow">Also from the makers of Claude Buddy</span>
+          Voxmin makes AI songs, karaoke tracks and lyric videos with timings you can edit. Pay per track, no subscription.</span>
+        <span class="sib-cta">Try Voxmin →</span>
+      </a>
+    </aside>
+
     <footer>
-      <span>Claude Buddy is free and open source (MIT). Unofficial; not affiliated with Anthropic.</span>
+      <span>Claude Buddy is free and open source (MIT). Made by the team behind <a href="https://voxmin.com/?utm_source=claudebuddy&utm_medium=referral&utm_campaign=site_footer">Voxmin</a>. Unofficial; not affiliated with Anthropic.</span>
       <span><a href="https://github.com/shivanshtalwar0/claude-buddy">Source on GitHub</a> · <a href="https://github.com/shivanshtalwar0/claude-buddy/issues">Report a problem</a></span>
     </footer>
   </div>

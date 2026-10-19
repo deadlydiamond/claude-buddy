@@ -121,4 +121,5 @@ GitHub Actions builds Windows, macOS and Linux executables on every push and pub
 
 ---
 
+<sub>Made by the team behind <a href="https://voxmin.com/?utm_source=claudebuddy&utm_medium=referral&utm_campaign=readme">Voxmin</a>: AI songs, karaoke tracks and lyric videos you can edit.</sub><br>
 <sub>Claude Buddy is an unofficial community tool and isn't affiliated with or endorsed by Anthropic. "Claude" is a trademark of Anthropic. MIT licensed.</sub>
