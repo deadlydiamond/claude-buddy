@@ -7,6 +7,6 @@
 __pycache__/
 build/
 claude-chats-md/
-claude_session_copy/web/
+claude_buddy/web/
 dist/
 node_modules/

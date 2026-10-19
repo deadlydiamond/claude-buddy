@@ -8,9 +8,11 @@ import SessionsView from './components/SessionsView.vue'
 import ChatsView from './components/ChatsView.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import { call, errorText } from './api.js'
+import { demo } from './demo.js'
+import logo from './logo.png'
 
 const toast = useToast()
-const mode = ref('sessions')
+const mode = ref(demo === 'chats' ? 'chats' : 'sessions')
 const modes = [
   { label: 'Code sessions', value: 'sessions' },
   { label: 'claude.ai chats', value: 'chats' },
@@ -47,7 +49,7 @@ onMounted(refresh)
 <template>
   <div class="shell">
     <header class="topbar">
-      <div class="brand">Claude Session Copy</div>
+      <div class="brand"><img :src="logo" alt="" width="26" height="26">Claude Buddy</div>
       <SelectButton v-model="mode" :options="modes" option-label="label" option-value="value" :allow-empty="false"
                     aria-label="What to copy" />
       <div class="top-actions">

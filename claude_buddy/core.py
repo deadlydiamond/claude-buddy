@@ -303,7 +303,7 @@ def copy_sessions(paths: Paths, src_dir: Path, dst_dir: Path, sessions: Iterable
             if src_tr is None:
                 note = "transcript NOT found (metadata only)"
             elif share_transcript:
-                note = "sharing the original transcript"
+                note = "synced: shares the original transcript"
             else:
                 new_cli = str(uuid.uuid4())
                 if not dry_run:

@@ -1,4 +1,4 @@
-// Bridge to the Python side (claude_session_copy/app.py → class Api).
+// Bridge to the Python side (claude_buddy/app.py → class Api).
 // Inside the desktop app pywebview injects window.pywebview.api. In `npm run dev` (a plain browser)
 // there is no Python, so a mock with sample data is used instead. Production builds never use the mock.
 

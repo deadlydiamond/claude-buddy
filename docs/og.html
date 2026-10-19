@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>Claude Buddy social image</title>
+<!-- Source for assets/og.png (1200x630). Render: chrome --headless --window-size=1200,630 --screenshot -->
+<style>
+  @font-face { font-family: 'Hanken Grotesk'; src: url(assets/fonts/hanken-grotesk.woff2) format('woff2'); font-weight: 100 900; }
+  @font-face { font-family: 'Martian Mono'; src: url(assets/fonts/martian-mono-700.woff2) format('woff2'); font-weight: 700; }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body { background: #eceff3; font-family: 'Hanken Grotesk', sans-serif; color: #16202b; padding: 64px 70px; box-sizing: border-box; }
+  .brand { display: flex; align-items: center; gap: 14px; font-weight: 800; font-size: 30px; }
+  .brandlogo { height: 52px; display: block; }
+  .big { position: absolute; right: 70px; top: 56px; width: 250px; height: 250px; }
+  h1 { font-size: 64px; line-height: 1.02; letter-spacing: -0.03em; margin: 26px 0 0; font-weight: 800; max-width: 17ch; }
+  .ticket { position: absolute; left: 70px; right: 70px; bottom: 60px; height: 150px; background: #14263a; border-radius: 22px;
+    display: grid; grid-template-columns: 1fr auto 1fr 250px; align-items: center; color: #e7edf4; padding-left: 40px; }
+  .l { font-size: 14px; font-weight: 700; letter-spacing: .16em; color: #8ea3b8; }
+  .o { font-size: 48px; font-weight: 800; color: #f17448; letter-spacing: -0.02em; line-height: 1.1; }
+  .arrow { color: #8ea3b8; padding: 0 30px; } .arrow svg { width: 56px; height: 56px; display: block; }
+  .stub { height: 100%; border-left: 2px dashed #2f4762; display: flex; flex-direction: column; justify-content: center; padding: 0 30px; position: relative; }
+  .stub::before, .stub::after { content: ''; position: absolute; left: -14px; width: 26px; height: 26px; border-radius: 50%; background: #eceff3; }
+  .stub::before { top: -13px; } .stub::after { bottom: -13px; }
+  .n { font: 700 40px 'Martian Mono'; line-height: 1; }
+  .s { color: #8ea3b8; font-size: 16px; margin-top: 8px; }
+</style>
+</head>
+<body>
+  <img class="brandlogo" src="assets/logo-horizontal.png" alt="">
+  <img class="big" src="assets/mark.png" alt="">
+  <h1>Move Claude Code sessions to another account</h1>
+  <div class="ticket">
+    <div><div class="l">FROM</div><div class="o">Work</div></div>
+    <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M14 6l6 6-6 6"/></svg></div>
+    <div><div class="l">TO</div><div class="o">Personal</div></div>
+    <div class="stub"><div class="n">6</div><div class="s">sessions copied</div></div>
+  </div>
+</body>
+</html>

@@ -4,7 +4,7 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from claude_session_copy.core import (Paths, copy_sessions, cwd_slug, export_to_markdown, list_accounts, load_sessions,
+from claude_buddy.core import (Paths, copy_sessions, cwd_slug, export_to_markdown, list_accounts, load_sessions,
                                       with_descendants)
 
 OLD_CLI = "11111111-2222-3333-4444-555555555555"
@@ -68,6 +68,13 @@ class CopySessionsTest(unittest.TestCase):
         # originals untouched
         self.assertIn(OLD_CLI, (self.proj / f"{OLD_CLI}.jsonl").read_text())
         self.assertEqual(len(load_sessions(self.src)), 2)
+
+    def test_sync_shares_one_transcript(self):
+        sessions = [s for s in load_sessions(self.src) if s.id == "local_a"]
+        copy_sessions(self.paths, self.src, self.dst, sessions, share_transcript=True, log=lambda _m: None)
+        (copy,) = load_sessions(self.dst)
+        self.assertEqual(copy.data["cliSessionId"], OLD_CLI)
+        self.assertEqual(len(list(self.proj.glob("*.jsonl"))), 1)
 
     def test_dry_run_writes_nothing(self):
         copy_sessions(self.paths, self.src, self.dst, load_sessions(self.src), dry_run=True, log=lambda _m: None)

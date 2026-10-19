@@ -1,4 +1,4 @@
-"""Desktop app: a Vue + PrimeVue frontend (claude_session_copy/web) in a native pywebview window.
+"""Desktop app: a Vue + PrimeVue frontend (claude_buddy/web) in a native pywebview window.
 
 The frontend calls the public methods of `Api` through `window.pywebview.api.<method>(...)`; each call
 runs on a worker thread and resolves to the JSON-serialisable value returned here.
@@ -17,6 +17,7 @@ from .names import load_names
 from .core import Account, Paths, copy_sessions, export_to_markdown, list_accounts, load_sessions, with_descendants
 
 WEB_DIR = Path(__file__).resolve().parent / "web"
+ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 
 
 def _project_name(cwd: str) -> str:
@@ -79,6 +80,8 @@ class Api:
         }
 
     def get_sessions(self, org_id: str) -> list[dict]:
+        sessions = load_sessions(self._org(org_id))
+        synced = self._synced_elsewhere(org_id)
         return [{
             "id": s.id,
             "title": s.title,
@@ -87,7 +90,26 @@ class Api:
             "lastActivity": s.last_activity,
             "archived": s.archived,
             "parentId": s.parent_id,
-        } for s in load_sessions(self._org(org_id))]
+            "syncedWith": sorted(synced.get(s.data.get("cliSessionId"), ())),
+        } for s in sessions]
+
+    def _synced_elsewhere(self, org_id: str) -> dict[str, set[str]]:
+        """transcript id -> labels of *other* orgs that have a session on the same transcript."""
+        accounts = list_accounts(self._paths)
+        codes = _codes(accounts)
+        names = load_names(self._paths.app_dir)
+        out: dict[str, set[str]] = {}
+        for a in accounts:
+            for o in a.orgs:
+                if o.uuid == org_id:
+                    continue
+                info = names.orgs.get(o.uuid)
+                label = info.name if info else codes[o.uuid]
+                for s in o.sessions:
+                    cli = s.data.get("cliSessionId")
+                    if cli:
+                        out.setdefault(cli, set()).add(label)
+        return out
 
     def set_folders(self, app_dir: str, config_dir: str) -> dict:
         self._paths = Paths(Path(app_dir).expanduser(), Path(config_dir).expanduser())
@@ -95,12 +117,14 @@ class Api:
 
     # ------------------------------------------------------------ actions
 
-    def copy(self, src_id: str, dst_id: str, session_ids: list[str], title_suffix: str = "") -> dict:
+    def copy(self, src_id: str, dst_id: str, session_ids: list[str], title_suffix: str = "", sync: bool = False) -> dict:
+        """sync=True: both orgs share one transcript, so work continues across them (one at a time)."""
         src, dst = self._org(src_id), self._org(dst_id)
         # Sub-sessions always travel with their parent.
         sessions = with_descendants(load_sessions(src), session_ids)
         lines: list[str] = []
-        copied = copy_sessions(self._paths, src, dst, sessions, title_suffix=title_suffix, log=lines.append)
+        copied = copy_sessions(self._paths, src, dst, sessions, share_transcript=sync, title_suffix=title_suffix,
+                               log=lines.append)
         return {"copied": copied, "missingTranscripts": sum("NOT found" in l for l in lines)}
 
     def convert_export(self, export_path: str) -> dict:
@@ -165,6 +189,8 @@ def main() -> None:
     if not index.exists():
         sys.exit(f"Frontend not built: {index} is missing. Run `npm ci && npm run build` in ./frontend first.")
     api = Api()
-    api._window = webview.create_window("Claude Session Copy", str(index), js_api=api, width=1080, height=760,
+    api._window = webview.create_window("Claude Buddy", str(index), js_api=api, width=1080, height=760,
                                         min_size=(820, 600), background_color="#ECEFF3")
-    webview.start(debug=bool(os.environ.get("CSC_DEBUG")))
+    # Window / Dock / taskbar icon (packaged builds also embed it via PyInstaller --icon).
+    icon = ASSETS_DIR / ("icon.ico" if sys.platform.startswith("win") else "icon.png")
+    webview.start(debug=bool(os.environ.get("CLAUDE_BUDDY_DEBUG")), icon=str(icon) if icon.exists() else None)

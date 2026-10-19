@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Buddy – Move Claude Code sessions between accounts</title>
+  <meta name="description" content="Free, open-source app to copy or sync Claude Code sessions and claude.ai chats to another Claude account or organization, and keep working past usage limits.">
+  <link rel="canonical" href="https://shivanshtalwar0.github.io/claude-buddy/">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="theme-color" content="#fbf7f1">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Claude Buddy">
+  <meta property="og:title" content="Claude Buddy – Move Claude Code sessions between accounts">
+  <meta property="og:description" content="Copy Claude Code sessions with full history and sub-sessions to another Claude account or organization. Free and open source.">
+  <meta property="og:url" content="https://shivanshtalwar0.github.io/claude-buddy/">
+  <meta property="og:image" content="https://shivanshtalwar0.github.io/claude-buddy/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Claude Buddy: copy sessions from your Work organization to Personal">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Claude Buddy – Move Claude Code sessions between accounts">
+  <meta name="twitter:description" content="Copy Claude Code sessions with full history and sub-sessions to another Claude account or organization.">
+  <meta name="twitter:image" content="https://shivanshtalwar0.github.io/claude-buddy/assets/og.png">
+
+  <link rel="preload" href="assets/fonts/hanken-grotesk.woff2" as="font" type="font/woff2" crossorigin>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Claude Buddy",
+    "alternateName": "claude-buddy",
+    "image": "https://shivanshtalwar0.github.io/claude-buddy/assets/icon-512.png",
+    "description": "Desktop app that copies Claude Code sessions (with full conversation history and sub-sessions) between Claude accounts and organizations, and converts claude.ai chat exports to Markdown.",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Windows, macOS, Linux",
+    "softwareVersion": "1.0.0",
+    "license": "https://opensource.org/licenses/MIT",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "downloadUrl": "https://github.com/shivanshtalwar0/claude-buddy/releases/latest",
+    "codeRepository": "https://github.com/shivanshtalwar0/claude-buddy",
+    "screenshot": "https://shivanshtalwar0.github.io/claude-buddy/assets/screenshot.png",
+    "author": { "@type": "Person", "name": "Shivansh Talwar", "url": "https://github.com/shivanshtalwar0" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "Can I move Claude Code sessions to a different Claude account or organization?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Claude Buddy copies Claude Code sessions from the Claude desktop app into another account or organization on the same computer, including the full conversation history. Sign in to the other account or organization once in the Claude desktop app, then pick it as the destination." } },
+      { "@type": "Question", "name": "I hit my Claude usage limit. Can I continue the same session in another account?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Copy the session with Keep in sync turned on. Both organizations share one conversation, so you can continue in the other and later switch back to pick up the latest progress. Work in one organization at a time." } },
+      { "@type": "Question", "name": "Can I transfer claude.ai chats to another account?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Claude has no way to import chats. Claude Buddy turns your official claude.ai data export into readable Markdown files that you can upload to a Project in the new account, so Claude can refer back to them." } },
+      { "@type": "Question", "name": "Does it copy sub-sessions?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Sessions started from another session are shown under their parent. Copying a parent copies all of its sub-sessions and keeps the same structure in the destination." } },
+      { "@type": "Question", "name": "Does Claude Buddy change or upload my sessions?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. Originals are never modified, and everything happens on your computer. Claude Buddy makes no network requests and never reads passwords, tokens or cookies." } },
+      { "@type": "Question", "name": "Is Claude Buddy made by Anthropic?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. Claude Buddy is an unofficial, community-built open-source tool and is not affiliated with Anthropic." } }
+    ]
+  }
+  </script>
+
+  <style>
+    @font-face { font-family: 'Hanken Grotesk'; src: url(assets/fonts/hanken-grotesk.woff2) format('woff2'); font-weight: 100 900; font-display: swap; }
+    @font-face { font-family: 'Martian Mono'; src: url(assets/fonts/martian-mono-700.woff2) format('woff2'); font-weight: 700; font-display: swap; }
+
+    :root {
+      --paper: #eceff3; --card: #fff; --ink: #16202b; --body: #3a4450; --muted: #687586; --line: #dde2e8;
+      --ticket: #14263a; --ticket-2: #1b3049; --ticket-text: #e7edf4; --ticket-muted: #8ea3b8; --brand: #f17448;
+      --ui: 'Hanken Grotesk', -apple-system, 'Segoe UI', sans-serif; --mono: 'Martian Mono', ui-monospace, Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.6 var(--ui); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    img { max-width: 100%; height: auto; display: block; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+    :focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; border-radius: 6px; }
+    .skip { position: absolute; left: -999px; }
+    .skip:focus { left: 16px; top: 12px; background: var(--card); padding: 8px 12px; }
+
+    /* header */
+    .top { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; text-decoration: none; letter-spacing: -0.01em; }
+    .logo img { height: 46px; width: auto; }
+    .nav { display: flex; gap: 22px; align-items: center; font-size: 15px; font-weight: 600; }
+    .nav a { text-decoration: none; color: var(--body); }
+    .nav a:hover { color: var(--ink); }
+    .gh { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--card); padding: 7px 14px; border-radius: 999px; }
+    .gh svg { width: 17px; height: 17px; }
+
+    /* hero */
+    .hero { padding: 56px 0 28px; }
+    .hero-top { display: grid; grid-template-columns: 1fr 300px; gap: 32px; align-items: center; }
+    .mascot { width: 300px; height: auto; justify-self: end; animation: bob 4s ease-in-out infinite; }
+    @keyframes bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-8px) rotate(-3deg); } }
+    .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+    h1 { font-size: clamp(36px, 5.6vw, 62px); line-height: 1.04; letter-spacing: -0.03em; margin: 0; max-width: 15ch; font-weight: 800; }
+    .lede { font-size: clamp(18px, 2vw, 21px); color: var(--body); max-width: 40rem; margin: 22px 0 0; }
+
+    /* the ticket (signature) */
+    .ticket { margin: 44px 0 0; display: grid; grid-template-columns: 1fr 300px; background: var(--ticket); color: var(--ticket-text);
+      border-radius: 22px; box-shadow: 0 30px 60px -36px rgba(20,38,58,.75); }
+    .route { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 22px; padding: 34px 38px; }
+    .label { display: block; font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ticket-muted); margin-bottom: 8px; }
+    .org { font-weight: 800; font-size: clamp(30px, 4.4vw, 50px); line-height: 1.05; letter-spacing: -0.02em; color: var(--brand); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .meta { display: flex; align-items: center; gap: 9px; margin-top: 10px; font-weight: 600; font-size: 15px; }
+    .pill { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--brand); border: 1px solid rgba(241,116,72,.45); border-radius: 999px; padding: 1px 9px; }
+    .sub { color: var(--ticket-muted); font-size: 14px; margin-top: 4px; }
+    .arrow { display: flex; align-items: center; color: var(--ticket-muted); padding-top: 18px; }
+    .arrow .line { width: clamp(30px, 8vw, 120px); border-top: 2px dashed #3a5370; transform-origin: left; animation: draw .9s .2s ease-out both; }
+    .arrow svg { width: 20px; height: 20px; margin-left: -2px; }
+    @keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    .stub { position: relative; border-left: 2px dashed #2f4762; padding: 30px 30px; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+    .stub::before, .stub::after { content: ''; position: absolute; left: -14px; width: 26px; height: 26px; border-radius: 50%; background: var(--paper); }
+    .stub::before { top: -13px; } .stub::after { bottom: -13px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; font-weight: 800; font-size: 17px;
+      background: var(--brand); color: var(--ticket); padding: 15px 20px; border-radius: 12px; transition: transform .12s ease, background .12s ease; }
+    .btn:hover { background: #f58c66; transform: translateY(-1px); }
+    .btn svg { width: 18px; height: 18px; }
+    .other { font-size: 14px; color: var(--ticket-muted); }
+    .other a { color: var(--ticket-text); }
+    .free { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--ticket-muted); }
+
+    /* screenshot */
+    .shot { margin: 46px auto 0; border-radius: 16px; overflow: hidden; background: var(--card); border: 1px solid var(--line);
+      box-shadow: 0 40px 80px -50px rgba(20,38,58,.55); }
+    .shot .bar { display: flex; gap: 7px; padding: 12px 14px; background: #e3e7ec; border-bottom: 1px solid var(--line); }
+    .shot .bar i { width: 11px; height: 11px; border-radius: 50%; background: #c6cdd6; }
+    figcaption { text-align: center; color: var(--muted); font-size: 14px; margin-top: 12px; }
+
+    /* sections */
+    section { padding: 84px 0 0; }
+    h2 { font-size: clamp(28px, 3.4vw, 40px); letter-spacing: -0.02em; line-height: 1.12; margin: 0 0 14px; max-width: 22ch; }
+    .intro { color: var(--body); max-width: 40rem; margin: 0 0 34px; }
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 26px 28px; }
+    .feature h3 { margin: 0 0 8px; font-size: 20px; letter-spacing: -0.01em; }
+    .feature p { margin: 0; color: var(--body); }
+    .steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; counter-reset: s; }
+    .steps li { counter-increment: s; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 26px; }
+    .steps li::before { content: counter(s); display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%;
+      background: var(--ticket); color: var(--brand); font: 700 15px var(--mono); margin-bottom: 16px; }
+    .steps h3 { margin: 0 0 6px; font-size: 18px; }
+    .steps p { margin: 0; color: var(--body); font-size: 16px; }
+    .split { display: grid; grid-template-columns: 1fr 1.25fr; gap: 44px; align-items: center; }
+    .split .shot { margin: 0; }
+    .faq { max-width: 50rem; }
+    details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 4px 22px; margin-bottom: 10px; }
+    summary { cursor: pointer; font-weight: 700; font-size: 18px; padding: 16px 0; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: '+'; font: 700 20px var(--mono); color: var(--muted); }
+    details[open] summary::after { content: '–'; }
+    details p { margin: 0 0 18px; color: var(--body); }
+    code { font: 700 13px var(--mono); background: #e3e7ec; padding: 2px 6px; border-radius: 6px; white-space: nowrap; font-variant-ligatures: none; }
+
+    .cta { margin: 90px 0 0; background: var(--ticket); color: var(--ticket-text); border-radius: 22px; padding: 48px; display: flex;
+      align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .cta h2 { color: #fff; margin: 0; }
+    footer { padding: 46px 0 60px; color: var(--muted); font-size: 14px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    footer a { color: var(--body); }
+
+    @media (max-width: 1000px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 860px) {
+      .ticket { grid-template-columns: 1fr; }
+      .stub { border-left: 0; border-top: 2px dashed #2f4762; }
+      .stub::before { top: -14px; left: -13px; } .stub::after { top: -14px; bottom: auto; left: auto; right: -13px; }
+      .route { grid-template-columns: 1fr; gap: 10px; padding: 28px; }
+      .arrow { transform: rotate(90deg); width: 40px; padding: 0; }
+      .features, .steps, .split, .hero-top { grid-template-columns: 1fr; }
+      .mascot { display: none; }
+      .nav a:not(.gh) { display: none; }
+      .cta { padding: 32px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="wrap">
+    <header class="top">
+      <a class="logo" href="./"><img src="assets/logo-horizontal.png" alt="Claude Buddy" width="900" height="180"></a>
+      <nav class="nav" aria-label="Main">
+        <a href="#how">How it works</a>
+        <a href="#chats">claude.ai chats</a>
+        <a href="#faq">FAQ</a>
+        <a class="gh" href="https://github.com/shivanshtalwar0/claude-buddy">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.88.87 2.34.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/></svg>
+          GitHub
+        </a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <div class="hero">
+        <div class="hero-top">
+        <div>
+        <p class="eyebrow">Free · Open source · Windows, macOS, Linux</p>
+        <h1>Move your Claude Code sessions to another account.</h1>
+        <p class="lede">Claude Buddy copies Claude Code sessions to a different Claude account or organization, with the full conversation history and every sub-session. Hit a usage limit? Keep a session in sync and carry on in your other organization. It also turns your claude.ai chats into files you can bring along.</p>
+        </div>
+        <img class="mascot" src="assets/mark.png" alt="Claude Buddy mascot: a smiling orange star holding a wrench" width="600" height="600">
+        </div>
+
+        <div class="ticket" role="group" aria-label="Example: copy 6 sessions from Work (Team plan) to Personal (Max plan)">
+          <div class="route">
+            <div>
+              <span class="label">From</span>
+              <div class="org">Work</div>
+              <div class="meta"><span class="pill">Team</span>you@company.com</div>
+              <div class="sub">172 sessions</div>
+            </div>
+            <div class="arrow" aria-hidden="true"><span class="line"></span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </div>
+            <div>
+              <span class="label">To</span>
+              <div class="org">Personal</div>
+              <div class="meta"><span class="pill">Max</span>you@company.com</div>
+              <div class="sub">38 sessions</div>
+            </div>
+          </div>
+          <div class="stub">
+            <a class="btn" id="dl" href="https://github.com/shivanshtalwar0/claude-buddy/releases/latest">
+              <span id="dl-label">Download Claude Buddy</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12m-5-5 5 5 5-5M5 20h14"/></svg>
+            </a>
+            <div class="other" id="dl-other">
+              Also for <a href="https://github.com/shivanshtalwar0/claude-buddy/releases/latest/download/ClaudeBuddy-windows-x64.exe">Windows</a>,
+              <a href="https://github.com/shivanshtalwar0/claude-buddy/releases/latest/download/ClaudeBuddy-macos-apple-silicon.zip">Mac (Apple Silicon)</a>,
+              <a href="https://github.com/shivanshtalwar0/claude-buddy/releases/latest/download/ClaudeBuddy-macos-intel.zip">Mac (Intel)</a> and
+              <a href="https://github.com/shivanshtalwar0/claude-buddy/releases/latest/download/ClaudeBuddy-linux-x64.tar.gz">Linux</a>.
+            </div>
+            <span class="free">MIT licensed · no sign-up</span>
+          </div>
+        </div>
+
+        <figure>
+          <div class="shot">
+            <div class="bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <img src="assets/screenshot.png" width="1600" height="1067" loading="eager"
+                 alt="Claude Buddy window: copying 6 Claude Code sessions, including 4 sub-sessions, from the Acme Engineering Team organization to a Personal Max organization">
+          </div>
+          <figcaption>Pick where your sessions are and where they should go, tick them, copy.</figcaption>
+        </figure>
+      </div>
+
+      <section aria-labelledby="what">
+        <h2 id="what">Everything comes along</h2>
+        <p class="intro">Switching from a work organization to your personal plan, or moving to a new account? Your sessions don’t have to stay behind.</p>
+        <div class="features">
+          <div class="feature">
+            <h3>Full conversation history</h3>
+            <p>Each copy carries its entire transcript, project folder, model and settings, so you can carry on exactly where you left off.</p>
+          </div>
+          <div class="feature">
+            <h3>Sub-sessions included</h3>
+            <p>Sessions started from another session are shown under their parent. Copy the parent and all of its sub-sessions come with it, in the same structure.</p>
+          </div>
+          <div class="feature">
+            <h3>Keep going past usage limits</h3>
+            <p>Turn on <b>Keep in sync</b> and both organizations share one conversation. When one hits its limit, switch and continue in the other. Later, switch back and pick up the latest progress.</p>
+          </div>
+          <div class="feature">
+            <h3>Names you recognise</h3>
+            <p>Organizations show up the way Claude shows them, such as “Developers · Team” or “Personal · Max”, along with the account email.</p>
+          </div>
+          <div class="feature">
+            <h3>Nothing leaves your computer</h3>
+            <p>Your originals are never changed. Claude Buddy works only with the Claude app’s files on your computer, makes no network requests, and never reads passwords or tokens.</p>
+          </div>
+          <div class="feature">
+            <h3>Command line too</h3>
+            <p>Prefer a terminal? Everything the app does also works from the command line, ready for scripts. For example, <code>claude-buddy copy --sync</code>.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" aria-labelledby="how-h">
+        <h2 id="how-h">How it works</h2>
+        <p class="intro">It takes about a minute.</p>
+        <ol class="steps">
+          <li><h3>Sign in once</h3><p>In the Claude desktop app, sign in to the account or organization you’re moving to, so it appears in Claude Buddy.</p></li>
+          <li><h3>Pick and tick</h3><p>Open Claude Buddy, choose <b>From</b> and <b>To</b>, and tick the sessions you want. Search helps with long lists.</p></li>
+          <li><h3>Copy and reopen</h3><p>Click <b>Copy</b>, reopen the Claude desktop app and switch organization. Your sessions are in the sidebar.</p></li>
+        </ol>
+      </section>
+
+      <section id="chats" aria-labelledby="chats-h">
+        <div class="split">
+          <div>
+            <h2 id="chats-h">Bring your claude.ai chats too</h2>
+            <p class="intro">Claude can’t import chats into another account. Claude Buddy turns your official claude.ai data export into readable Markdown files, one per chat. Your projects’ instructions and documents come too. Upload them to a Project in the new account, and Claude can refer back to them.</p>
+          </div>
+          <div class="shot">
+            <div class="bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <img src="assets/chats.png" width="1600" height="860" loading="lazy"
+                 alt="Claude Buddy converting a claude.ai data export into Markdown: 42 chats and 3 projects saved">
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" aria-labelledby="faq-h" class="faq">
+        <h2 id="faq-h">Questions</h2>
+        <details open>
+          <summary>Can I move Claude Code sessions to a different Claude account or organization?</summary>
+          <p>Yes. Claude Buddy copies sessions from the Claude desktop app’s Code tab into another account or organization on the same computer, with the full conversation history. Sign in to the destination once in the Claude desktop app so it shows up in Claude Buddy.</p>
+        </details>
+        <details>
+          <summary>I hit my Claude usage limit. Can I continue the same session in another account?</summary>
+          <p>Yes. Copy the session with <b>Keep in sync</b> turned on. Both organizations then share one conversation, so you can continue in the other one and later switch back to pick up the latest progress. Work in one organization at a time. Rewinding a synced session splits it off into its own copy.</p>
+        </details>
+        <details>
+          <summary>Can I transfer claude.ai chats to another account?</summary>
+          <p>Not as native chat history, because Claude has no import feature. Claude Buddy converts your claude.ai data export (Settings → Privacy → Export data) into Markdown files that you upload to a Project in the new account.</p>
+        </details>
+        <details>
+          <summary>Does it copy sub-sessions?</summary>
+          <p>Yes. Copying a parent session copies everything below it and keeps the structure. You can also copy a single sub-session on its own; it becomes a regular session.</p>
+        </details>
+        <details>
+          <summary>Is it safe? Will it change my sessions?</summary>
+          <p>Originals are never changed. Claude Buddy only adds new copies. It makes no network requests and doesn’t read passwords, tokens or cookies. The code is open source on <a href="https://github.com/shivanshtalwar0/claude-buddy">GitHub</a>.</p>
+        </details>
+        <details>
+          <summary>Why does my computer warn me when I open it?</summary>
+          <p>The downloads aren’t code-signed yet. On a Mac, right-click the app and choose <b>Open</b>. On Windows, choose <b>More info → Run anyway</b>. Or run it from source with Python.</p>
+        </details>
+        <details>
+          <summary><span>What about sessions from the <code>claude</code> terminal command?</span></summary>
+          <p>Those aren’t tied to an account. <code>claude --resume</code> already works after you switch accounts.</p>
+        </details>
+        <details>
+          <summary>Is Claude Buddy made by Anthropic?</summary>
+          <p>No. It’s an unofficial, community-built tool and isn’t affiliated with Anthropic.</p>
+        </details>
+      </section>
+
+      <div class="cta">
+        <h2>Take your sessions with you.</h2>
+        <a class="btn" href="https://github.com/shivanshtalwar0/claude-buddy/releases/latest">Download Claude Buddy
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12m-5-5 5 5 5-5M5 20h14"/></svg>
+        </a>
+      </div>
+    </main>
+
+    <footer>
+      <span>Claude Buddy is free and open source (MIT). Unofficial; not affiliated with Anthropic.</span>
+      <span><a href="https://github.com/shivanshtalwar0/claude-buddy">Source on GitHub</a> · <a href="https://github.com/shivanshtalwar0/claude-buddy/issues">Report a problem</a></span>
+    </footer>
+  </div>
+
+  <script>
+    // Point the main button at the right download for this computer.
+    (function () {
+      var base = 'https://github.com/shivanshtalwar0/claude-buddy/releases/latest/download/';
+      var ua = navigator.userAgent, p = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
+      var file, label;
+      if (/Win/i.test(p) || /Windows/i.test(ua)) { file = 'ClaudeBuddy-windows-x64.exe'; label = 'Download for Windows'; }
+      else if (/Mac/i.test(p) || /Mac OS X/i.test(ua)) { file = 'ClaudeBuddy-macos-apple-silicon.zip'; label = 'Download for Mac'; }
+      else if (/Linux/i.test(p) && !/Android/i.test(ua)) { file = 'ClaudeBuddy-linux-x64.tar.gz'; label = 'Download for Linux'; }
+      if (!file) return;
+      document.getElementById('dl').href = base + file;
+      document.getElementById('dl-label').textContent = label;
+    })();
+  </script>
+</body>
+</html>

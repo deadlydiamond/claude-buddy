@@ -35,7 +35,7 @@ const subs = [
 const sessions = {
   [orgs[0].id]: [
     ...titles.map(([title, cwd, ago], i) => ({
-      id: `local_${i}`, title, cwd, project: cwd.split('/').pop(), lastActivity: now - ago * h, archived: i === 8, parentId: null,
+      id: `local_${i}`, title, cwd, project: cwd.split('/').pop(), lastActivity: now - ago * h, archived: i === 8, parentId: null, syncedWith: i === 1 ? ['Personal'] : [],
     })),
     ...subs.map(([title, cwd, ago, parentId], i) => ({
       id: `local_s${i}`, title, cwd, project: cwd.split('/').pop(), lastActivity: now - ago * h, archived: false, parentId,

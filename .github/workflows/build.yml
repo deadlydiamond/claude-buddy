@@ -19,13 +19,13 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            asset: ClaudeSessionCopy-windows-x64
+            asset: ClaudeBuddy-windows-x64
           - os: macos-latest
-            asset: ClaudeSessionCopy-macos-apple-silicon
+            asset: ClaudeBuddy-macos-apple-silicon
           - os: macos-15-intel
-            asset: ClaudeSessionCopy-macos-intel
+            asset: ClaudeBuddy-macos-intel
           - os: ubuntu-24.04
-            asset: ClaudeSessionCopy-linux-x64
+            asset: ClaudeBuddy-linux-x64
     steps:
       - uses: actions/checkout@v4
 
@@ -59,31 +59,31 @@ jobs:
       - name: Tests
         run: |
           python -m unittest discover -s tests -v
-          python -m claude_session_copy --version
-          python -c "import webview, pathlib; assert pathlib.Path('claude_session_copy/web/index.html').exists()"
+          python -m claude_buddy --version
+          python -c "import webview, pathlib; assert pathlib.Path('claude_buddy/web/index.html').exists()"
 
       - name: Build (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          pyinstaller --noconfirm --onefile --windowed --name ClaudeSessionCopy \
-            --add-data "claude_session_copy/web:claude_session_copy/web" run.py
-          mkdir -p out && cp dist/ClaudeSessionCopy.exe "out/${{ matrix.asset }}.exe"
+          pyinstaller --noconfirm --onefile --windowed --name ClaudeBuddy --icon packaging/icon.ico \
+            --add-data "claude_buddy/web:claude_buddy/web" --add-data "claude_buddy/assets:claude_buddy/assets" run.py
+          mkdir -p out && cp dist/ClaudeBuddy.exe "out/${{ matrix.asset }}.exe"
 
       - name: Build (macOS)
         if: runner.os == 'macOS'
         run: |
-          pyinstaller --noconfirm --windowed --name "Claude Session Copy" \
-            --osx-bundle-identifier io.github.shivanshtalwar0.claudesessioncopy \
-            --add-data "claude_session_copy/web:claude_session_copy/web" run.py
-          mkdir -p out && ditto -c -k --keepParent "dist/Claude Session Copy.app" "out/${{ matrix.asset }}.zip"
+          pyinstaller --noconfirm --windowed --name "Claude Buddy" --icon packaging/icon.icns \
+            --osx-bundle-identifier io.github.shivanshtalwar0.claudebuddy \
+            --add-data "claude_buddy/web:claude_buddy/web" --add-data "claude_buddy/assets:claude_buddy/assets" run.py
+          mkdir -p out && ditto -c -k --keepParent "dist/Claude Buddy.app" "out/${{ matrix.asset }}.zip"
 
       - name: Build (Linux)
         if: runner.os == 'Linux'
         run: |
-          pyinstaller --noconfirm --onefile --name claude-session-copy \
-            --add-data "claude_session_copy/web:claude_session_copy/web" run.py
-          mkdir -p out && tar -czf "out/${{ matrix.asset }}.tar.gz" -C dist claude-session-copy
+          pyinstaller --noconfirm --onefile --name claude-buddy \
+            --add-data "claude_buddy/web:claude_buddy/web" --add-data "claude_buddy/assets:claude_buddy/assets" run.py
+          mkdir -p out && tar -czf "out/${{ matrix.asset }}.tar.gz" -C dist claude-buddy
 
       - uses: actions/upload-artifact@v4
         with:

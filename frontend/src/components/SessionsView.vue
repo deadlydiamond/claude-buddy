@@ -10,11 +10,13 @@ import InputText from 'primevue/inputtext'
 import Tag from 'primevue/tag'
 import Message from 'primevue/message'
 import Dialog from 'primevue/dialog'
+import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
 import OrgButton from './OrgButton.vue'
 import { call, errorText } from '../api.js'
 import { ago, orgLabel, plural } from '../format.js'
 import { allKeysWithChildren, buildTree, filterTree } from '../sessionTree.js'
+import { demo } from '../demo.js'
 
 const props = defineProps({
   state: { type: Object, default: null },
@@ -37,6 +39,7 @@ const expanded = ref({})
 const picked = ref(new Set()) // what the user ticked; sub-sessions of these come along automatically
 
 const copying = ref(false)
+const sync = ref(false)
 const result = ref(null)
 
 // ---------- tree + selection ----------
@@ -124,6 +127,10 @@ watch(srcId, async (id, old) => {
   loadingSessions.value = true
   try {
     sessions.value = await call('get_sessions', id)
+    if (demo === 'tree') {
+      picked.value = new Set(['local_0', 'local_3'])
+      expanded.value = { local_0: true, local_s2: true }
+    }
   } catch (e) {
     toast.add({ severity: 'error', summary: 'Couldn’t load sessions', detail: errorText(e), life: 6000 })
   } finally {
@@ -136,7 +143,7 @@ const canCopy = computed(() => total.value > 0 && dst.value && !copying.value)
 const copyLabel = computed(() => {
   if (!dst.value) return 'Add a destination first'
   if (!total.value) return 'Select sessions below'
-  return `Copy ${plural(total.value, 'session')}`
+  return `${sync.value ? 'Sync' : 'Copy'} ${plural(total.value, 'session')}`
 })
 
 async function copy() {
@@ -144,10 +151,10 @@ async function copy() {
   copying.value = true
   try {
     const [res, running] = await Promise.all([
-      call('copy', srcId.value, dstId.value, [...picked.value], props.titleSuffix),
+      call('copy', srcId.value, dstId.value, [...picked.value], props.titleSuffix, sync.value),
       call('claude_running'),
     ])
-    result.value = { ...res, to: orgLabel(dst.value), running, suffix: props.titleSuffix.trim(), subs: subIncluded.value }
+    result.value = { ...res, to: orgLabel(dst.value), from: orgLabel(src.value), running, suffix: props.titleSuffix.trim(), subs: subIncluded.value, sync: sync.value }
     picked.value = new Set()
     emit('refresh')
   } catch (e) {
@@ -184,6 +191,12 @@ async function copy() {
         <span class="eyebrow">Selected</span>
         <span class="stub-count" aria-live="polite">{{ total }}</span>
         <span class="stub-sub">{{ subIncluded ? `incl. ${plural(subIncluded, 'sub-session')}` : '' }}</span>
+        <label class="sync-row" for="sync-toggle">
+          <ToggleSwitch v-model="sync" input-id="sync-toggle" class="sync-switch" />
+          <span>Keep in sync</span>
+          <i v-tooltip.left="'Both organizations share one conversation. When you hit a usage limit in one, continue in the other, then switch back later and pick up the latest progress. Work in one at a time.'"
+             class="pi pi-info-circle" tabindex="0" aria-label="What does keep in sync mean?" />
+        </label>
         <Button class="stub-button" :label="copyLabel" :disabled="!canCopy" :loading="copying"
                 :icon="canCopy ? 'pi pi-arrow-right' : undefined" icon-pos="right" @click="copy" />
       </div>
@@ -231,7 +244,9 @@ async function copy() {
                 <span v-if="node.data.subCount" class="sub-count">
                   <i class="pi pi-sitemap" aria-hidden="true" />{{ plural(node.data.subCount, 'sub-session') }}
                 </span>
-                <span v-if="isLocked(node.key)" class="with-parent">Copied with parent</span>
+                <span v-if="isLocked(node.key)" class="with-parent">Comes with parent</span>
+                <span v-if="node.data.syncedWith?.length" v-tooltip.top="'Shares its conversation with this session in the other organization'"
+                      class="synced-tag"><i class="pi pi-sync" aria-hidden="true" />Synced · {{ node.data.syncedWith.join(', ') }}</span>
                 <Tag v-if="node.data.archived" value="Archived" severity="secondary" class="archived-tag" />
               </label>
             </div>
@@ -253,13 +268,20 @@ async function copy() {
       <template #container>
         <div v-if="result" class="result">
           <i class="pi pi-check-circle result-icon" aria-hidden="true" />
-          <h2>Copied {{ plural(result.copied, 'session') }} to {{ result.to }}</h2>
+          <h2>{{ result.sync ? 'Synced' : 'Copied' }} {{ plural(result.copied, 'session') }} {{ result.sync ? 'with' : 'to' }} {{ result.to }}</h2>
+          <p v-if="result.sync">
+            {{ result.from }} and {{ result.to }} now continue the same conversations. When you hit a usage limit in one,
+            switch organization in the Claude app and keep going. The other picks up the latest progress the next time you open it.
+          </p>
+          <Message v-if="result.sync" severity="warn" size="small">
+            Work on a synced session in one organization at a time. Rewinding a synced session splits it off into its own copy.
+          </Message>
           <p>
             <template v-if="result.subs">Sub-sessions are still grouped under their parent sessions. </template>
             <template v-if="result.running">Quit and reopen the Claude desktop app, then switch</template>
             <template v-else>Open the Claude desktop app and switch</template>
             to {{ result.to }} to see them<template v-if="result.suffix">, titled with “{{ result.suffix }}”</template>.
-            The originals weren’t changed.
+            <template v-if="!result.sync">The originals weren’t changed.</template>
           </p>
           <Message v-if="result.missingTranscripts" severity="warn" size="small">
             {{ plural(result.missingTranscripts, 'session') }} had no saved conversation on this computer, so only the title and settings were copied.

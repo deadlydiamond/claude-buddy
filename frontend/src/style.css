@@ -1,5 +1,5 @@
-/* Claude Session Copy: a boarding pass for your sessions.
-   Palette:  paper #ECEFF3 · card #FFFFFF · ink #16202B · muted #687586 · ticket #14263A · route amber #F4B942
+/* Claude Buddy: a boarding pass for your sessions.
+   Palette:  paper #ECEFF3 · card #FFFFFF · ink #16202B · muted #687586 · ticket #14263A · brand orange #F17448
    Type:     Hanken Grotesk (UI) · Martian Mono (route codes only) */
 
 :root {
@@ -12,7 +12,7 @@
   --ticket-2: #1b3049;
   --ticket-text: #e7edf4;
   --ticket-muted: #8ea3b8;
-  --amber: #f4b942;
+  --brand: #f17448;
   --radius: 16px;
   --font-ui: 'Hanken Grotesk Variable', 'Hanken Grotesk', -apple-system, 'Segoe UI', sans-serif;
   --font-code: 'Martian Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
@@ -43,7 +43,8 @@ p { margin: 0; }
   gap: 16px;
   padding: 14px 24px 10px;
 }
-.brand { font-weight: 700; font-size: 15px; }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 15px; }
+.brand img { display: block; }
 .top-actions { justify-self: end; display: flex; gap: 2px; }
 .content { flex: 1; min-height: 0; padding: 6px 24px 24px; display: flex; flex-direction: column; }
 
@@ -87,14 +88,14 @@ p { margin: 0; }
 }
 .end-button { cursor: pointer; transition: background 0.15s ease; }
 .end-button:hover { background: var(--ticket-2); }
-.end-button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.end-button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .code {
   font-family: var(--font-code);
   font-weight: 700;
   font-size: 46px;
   line-height: 1.05;
   letter-spacing: 0.02em;
-  color: var(--amber);
+  color: var(--brand);
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -105,7 +106,7 @@ p { margin: 0; }
   font-size: 32px;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  color: var(--amber);
+  color: var(--brand);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -122,8 +123,8 @@ p { margin: 0; }
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--amber);
-  border: 1px solid rgba(244, 185, 66, 0.45);
+  color: var(--brand);
+  border: 1px solid rgba(241, 116, 72, 0.45);
   border-radius: 999px;
   padding: 1px 8px;
 }
@@ -175,12 +176,12 @@ p { margin: 0; }
 .ticket .stub-button.p-button {
   width: 100%;
   justify-content: center;
-  background: var(--amber);
-  border-color: var(--amber);
+  background: var(--brand);
+  border-color: var(--brand);
   color: var(--ticket);
   font-weight: 700;
 }
-.ticket .stub-button.p-button:not(:disabled):hover { background: #ffcb5c; border-color: #ffcb5c; color: var(--ticket); }
+.ticket .stub-button.p-button:not(:disabled):hover { background: #f58c66; border-color: #f58c66; color: var(--ticket); }
 .ticket .stub-button.p-button:disabled {
   opacity: 1;
   background: transparent;
@@ -188,7 +189,7 @@ p { margin: 0; }
   color: var(--ticket-muted);
   font-weight: 600;
 }
-.ticket .stub-button.p-button:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+.ticket .stub-button.p-button:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
 
 .tick-enter-active, .tick-leave-active { transition: transform 0.14s ease, opacity 0.14s ease; }
 .tick-enter-from { transform: translateY(6px); opacity: 0; }
@@ -205,7 +206,7 @@ p { margin: 0; }
   flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
   background: #eef1f4; color: var(--muted);
 }
-.picker-icon.team { background: var(--ticket); color: var(--amber); }
+.picker-icon.team { background: var(--ticket); color: var(--brand); }
 .picker-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
 .picker-plan { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .picker-text { min-width: 0; }
@@ -251,6 +252,19 @@ p { margin: 0; }
 }
 .sub-count .pi { font-size: 11px; }
 .with-parent { font-size: 12px; color: var(--muted); font-style: italic; }
+.synced-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: #a8441f;
+  background: #fde8df; border-radius: 999px; padding: 2px 9px;
+}
+.synced-tag .pi { font-size: 11px; }
+.sync-row { display: flex; align-items: center; gap: 10px; margin: -2px 0 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.sync-row .pi { color: var(--ticket-muted); font-size: 13px; }
+.sync-row .pi:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 50%; }
+.ticket .sync-switch.p-toggleswitch { --p-toggleswitch-checked-background: var(--brand); --p-toggleswitch-checked-hover-background: #f58c66; }
+.ticket .sync-switch .p-toggleswitch-slider { background: #2f4762; }
+.ticket .sync-switch.p-toggleswitch-checked .p-toggleswitch-slider { background: var(--brand); }
+.ticket .sync-switch.p-toggleswitch-checked .p-toggleswitch-handle { background: var(--ticket); }
 .title-cell { font-weight: 600; }
 .archived-tag { margin-left: 8px; vertical-align: 1px; }
 .project-cell { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); }
@@ -296,7 +310,7 @@ p { margin: 0; }
   font-weight: 700;
   font-size: 14px;
   background: var(--ticket);
-  color: var(--amber);
+  color: var(--brand);
 }
 .step-num.is-done { background: #2f7d4f; color: #fff; }
 .step-body h3 { font-size: 16px; margin-bottom: 4px; }

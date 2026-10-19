@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from claude_session_copy.names import _unsnappy, load_names
+from claude_buddy.names import _unsnappy, load_names
 
 ORG_TEAM = b"a1173955-722b-4fe6-bad2-741f8a61d4a4"
 ORG_PERSONAL = b"fc1a760d-280f-4f4d-8574-6d756c80d2ae"
@@ -45,6 +45,14 @@ class NamesTest(unittest.TestCase):
         self.assertEqual((team.name, team.plan, team.personal), ("Developers-77o", "Team", False))
         self.assertEqual((personal.name, personal.plan, personal.personal), ("Personal", "Max", True))
         self.assertNotIn(CHAT.decode(), names.orgs)
+
+    def test_garbled_values_are_ignored(self):
+        blob = key(b"uuid") + s(ACCOUNT) + key(b"email_address") + s(b'sh)\x01@I(Do.com" full')
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "IndexedDB" / "https_claude.ai_0.indexeddb.blob" / "1"
+            p.mkdir(parents=True)
+            (p / "x").write_bytes(b"membership" + blob)
+            self.assertEqual(load_names(Path(d)).emails, {})
 
     def test_missing_cache_is_harmless(self):
         with tempfile.TemporaryDirectory() as d:

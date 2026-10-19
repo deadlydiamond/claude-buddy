@@ -89,7 +89,7 @@ def cmd_gui(_args) -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
-    ap = argparse.ArgumentParser(prog="claude-session-copy",
+    ap = argparse.ArgumentParser(prog="claude-buddy",
                                  description="Copy Claude sessions and chats between Claude accounts / organizations.")
     ap.add_argument("--version", action="version", version=__version__)
     ap.add_argument("--app-dir", help="Claude desktop app data folder (auto-detected)")
@@ -110,8 +110,9 @@ def main(argv: list[str] | None = None) -> None:
     cp.add_argument("--session", nargs="+", metavar="ID", help="session ids or prefixes")
     cp.add_argument("--all", action="store_true")
     cp.add_argument("--include-archived", action="store_true")
-    cp.add_argument("--share-transcript", action="store_true",
-                    help="reuse the original transcript instead of cloning it")
+    cp.add_argument("--sync", "--share-transcript", dest="share_transcript", action="store_true",
+                    help="keep the copy in sync: both orgs share one transcript, so you can continue in either "
+                         "(use one at a time)")
     cp.add_argument("--no-children", action="store_true",
                     help="don't automatically include sub-sessions of the selected sessions")
     cp.add_argument("--title-suffix", default="")

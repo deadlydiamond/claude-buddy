@@ -5,11 +5,12 @@ import Message from 'primevue/message'
 import { useToast } from 'primevue/usetoast'
 import { call, errorText } from '../api.js'
 import { plural } from '../format.js'
+import { demo } from '../demo.js'
 
 const toast = useToast()
-const exportPath = ref('')
+const exportPath = ref(demo === 'chats' ? '/Users/you/Downloads/data-2026-10-19-claude.zip' : '')
 const converting = ref(false)
-const done = ref(null)
+const done = ref(demo === 'chats' ? { chats: 42, projects: 3, out: '/Users/you/Downloads/data-2026-10-19-claude-markdown' } : null)
 const fileName = computed(() => exportPath.value.split(/[\\/]/).pop())
 
 async function choose() {

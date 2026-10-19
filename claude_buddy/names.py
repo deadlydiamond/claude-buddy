@@ -15,6 +15,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 UUID_RE = rb"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+EMAIL_RE = re.compile(r"[A-Za-z0-9._%+'-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+
+
+def _clean(text: str | None) -> bool:
+    return bool(text) and text.isprintable() and len(text) <= 200
 MAX_FILE = 64 * 1024 * 1024
 
 
@@ -90,15 +95,17 @@ def _unsnappy(b: bytes, i: int = 0) -> bytes:
     return bytes(out)
 
 
-def _payloads(raw: bytes):
-    """The file as-is, plus a Snappy-decoded version if the Blink envelope says it's compressed."""
-    yield raw
+def _payload(raw: bytes) -> bytes:
+    """Snappy-decoded contents if the value is compressed, else the bytes as-is.
+
+    Never scan compressed bytes directly: literal fragments survive compression and would
+    produce garbled matches (half an email address, say)."""
     for start in range(0, 8):
         try:
-            yield _unsnappy(raw, start)
-            return
+            return _unsnappy(raw, start)
         except (ValueError, IndexError):
             continue
+    return raw
 
 
 def _key(k: bytes) -> bytes:
@@ -135,11 +142,11 @@ def _scan(d: bytes, names: Names) -> None:
         j = m.end()
         if d.startswith(k_email, j) and uid not in names.emails:
             email, _ = _read_str(d, j + len(k_email))
-            if email and "@" in email:
+            if email and EMAIL_RE.fullmatch(email):
                 names.emails[uid] = email
         elif d.startswith(k_name, j) and uid not in names.orgs:
             name, k = _read_str(d, j + len(k_name))
-            if not name:
+            if not _clean(name):
                 continue
             window = d[k:k + 40000]
             nxt = window.find(k_uuid + b'"$')       # stay inside this organization object
@@ -183,11 +190,10 @@ def load_names(app_dir: Path) -> Names:
             continue
         if b"membership" not in raw and b"email_address" not in raw:
             continue
-        for payload in _payloads(raw):
-            try:
-                _scan(payload, names)
-            except (IndexError, ValueError):
-                continue
+        try:
+            _scan(_payload(raw), names)
+        except (IndexError, ValueError):
+            continue
     _cache.clear()
     _cache[sig] = names
     return names

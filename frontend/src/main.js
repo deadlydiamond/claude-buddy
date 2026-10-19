@@ -12,7 +12,7 @@ import 'primeicons/primeicons.css'
 import './style.css'
 import App from './App.vue'
 
-// Navy primary (the ticket) on cool grey surfaces. Amber is reserved for the route codes in style.css.
+// Navy primary (the ticket) on cool grey surfaces. Brand orange is reserved for the route codes in style.css.
 const Ticket = definePreset(Aura, {
   primitive: {
     borderRadius: { none: '0', xs: '4px', sm: '6px', md: '8px', lg: '10px', xl: '14px' },
