@@ -4,7 +4,8 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from claude_session_copy.core import Paths, copy_sessions, cwd_slug, export_to_markdown, list_accounts, load_sessions
+from claude_session_copy.core import (Paths, copy_sessions, cwd_slug, export_to_markdown, list_accounts, load_sessions,
+                                      with_descendants)
 
 OLD_CLI = "11111111-2222-3333-4444-555555555555"
 
@@ -72,6 +73,36 @@ class CopySessionsTest(unittest.TestCase):
         copy_sessions(self.paths, self.src, self.dst, load_sessions(self.src), dry_run=True, log=lambda _m: None)
         self.assertEqual(list(self.dst.iterdir()), [])
         self.assertEqual(len(list(self.proj.glob("*.jsonl"))), 1)
+
+    def _add(self, sid, **extra):
+        (self.src / f"{sid}.json").write_text(json.dumps({"sessionId": sid, "title": sid, "cwd": "/x", **extra}))
+
+    def test_sub_sessions_follow_parent(self):
+        self._add("local_p")
+        self._add("local_c1", spawnedFrom={"sessionId": "local_p", "taskId": "t1", "title": "p"})
+        self._add("local_c2", spawnedFrom={"sessionId": "local_p"})
+        self._add("local_g", forkedFromSessionId="local_c1")
+        self._add("local_other", spawnedFrom={"sessionId": "local_a"})
+        sessions = load_sessions(self.src)
+
+        picked = with_descendants(sessions, ["local_p"])
+        self.assertEqual({s.id for s in picked}, {"local_p", "local_c1", "local_c2", "local_g"})
+        self.assertEqual(picked[0].id, "local_p")
+
+        copy_sessions(self.paths, self.src, self.dst, picked, log=lambda _m: None)
+        new = {s.data["copiedFrom"]["sessionId"]: s for s in load_sessions(self.dst)}
+        self.assertEqual(new["local_c1"].parent_id, new["local_p"].id)
+        self.assertEqual(new["local_c2"].parent_id, new["local_p"].id)
+        self.assertEqual(new["local_c1"].data["spawnedFrom"]["taskId"], "t1")
+        self.assertEqual(new["local_g"].parent_id, new["local_c1"].id)
+
+    def test_child_copied_alone_loses_dangling_link(self):
+        self._add("local_c", spawnedFrom={"sessionId": "local_a"})
+        child = [s for s in load_sessions(self.src) if s.id == "local_c"]
+        copy_sessions(self.paths, self.src, self.dst, child, log=lambda _m: None)
+        (copy,) = load_sessions(self.dst)
+        self.assertIsNone(copy.parent_id)
+        self.assertNotIn("spawnedFrom", copy.data)
 
     def test_same_org_rejected(self):
         with self.assertRaises(ValueError):

@@ -38,8 +38,11 @@ DROP_FIELDS = {
     "peerReceipts", "peerMessaged", "sideSessionWakesSinceUserMessage", "steeredByRemoteClient",
     "remoteControlAutoEligible", "lastTurnCutShort", "latestUserFrameAt", "lastSpawnRootDetected",
     "spawnSeed", "promptAppendSnapshot", "toolSurfaceSnapshot", "turnBoxDeclared", "turnBoxMounted",
-    "bridgeSessionId", "remoteSessionId", "parentSessionId",
+    "bridgeSessionId", "remoteSessionId", "parentSessionId", "queuedSideSessionNotes", "pendingSystemReminder",
 }
+
+# Fields that link a session to the session it was started from (sub-sessions and forks).
+PARENT_FIELDS = ("spawnedFrom", "forkedFromSessionId")
 
 
 # ---------------------------------------------------------------- locations
@@ -96,6 +99,14 @@ class Session:
     @property
     def last_activity(self) -> int:
         return self.data.get("lastActivityAt") or self.data.get("createdAt") or 0
+
+    @property
+    def parent_id(self) -> str | None:
+        """The session this one was started from (a sub-session) or forked from, if any."""
+        spawned = self.data.get("spawnedFrom")
+        if isinstance(spawned, dict) and spawned.get("sessionId"):
+            return spawned["sessionId"]
+        return self.data.get("forkedFromSessionId") or None
 
 
 @dataclass
@@ -185,6 +196,40 @@ def resolve_org(paths: Paths, spec: str) -> Path:
     return pick(pick(paths.sessions_dir, acct, "account"), org, "org")
 
 
+# ---------------------------------------------------------------- session trees
+
+def children_map(sessions: Iterable[Session]) -> dict[str, list[Session]]:
+    """parent id -> direct sub-sessions, for parents present in `sessions`."""
+    sessions = list(sessions)
+    ids = {s.id for s in sessions}
+    kids: dict[str, list[Session]] = {}
+    for s in sessions:
+        if s.parent_id in ids and s.parent_id != s.id:
+            kids.setdefault(s.parent_id, []).append(s)
+    return kids
+
+
+def with_descendants(all_sessions: Iterable[Session], selected_ids: Iterable[str]) -> list[Session]:
+    """The selected sessions plus every sub-session below them, parents before children."""
+    all_sessions = list(all_sessions)
+    by_id = {s.id: s for s in all_sessions}
+    kids = children_map(all_sessions)
+    out: list[Session] = []
+    seen: set[str] = set()
+
+    def visit(sid: str) -> None:
+        if sid in seen or sid not in by_id:
+            return
+        seen.add(sid)
+        out.append(by_id[sid])
+        for k in kids.get(sid, []):
+            visit(k.id)
+
+    for sid in selected_ids:
+        visit(sid)
+    return out
+
+
 # ---------------------------------------------------------------- copy
 
 def cwd_slug(cwd: str) -> str:
@@ -228,11 +273,24 @@ def copy_sessions(paths: Paths, src_dir: Path, dst_dir: Path, sessions: Iterable
     prefix = "[dry run] " if dry_run else ""
     log(f"{prefix}Copying {len(sessions)} session(s)\n  from {src_dir}\n  to   {dst_dir}")
 
+    # New ids up front, so sub-sessions can point at their parent's copy.
+    new_ids = {s.id: f"local_{uuid.uuid4()}" for s in sessions}
+
     copied, newly_archived = 0, []
     for s in sessions:
-        new_local = f"local_{uuid.uuid4()}"
+        new_local = new_ids[s.id]
         new = {k: v for k, v in s.data.items() if k not in DROP_FIELDS}
         new["sessionId"] = new_local
+        parent = s.parent_id
+        if parent in new_ids:
+            if isinstance(new.get("spawnedFrom"), dict):
+                new["spawnedFrom"] = {**new["spawnedFrom"], "sessionId": new_ids[parent]}
+            if new.get("forkedFromSessionId"):
+                new["forkedFromSessionId"] = new_ids[parent]
+        else:
+            # The parent isn't being copied, so it won't exist in the target org.
+            for k in PARENT_FIELDS:
+                new.pop(k, None)
         if title_suffix:
             new["title"] = s.title + title_suffix
         new["copiedFrom"] = {"sessionId": s.id, "org": src_dir.name, "account": src_dir.parent.name,
@@ -258,7 +316,7 @@ def copy_sessions(paths: Paths, src_dir: Path, dst_dir: Path, sessions: Iterable
         if s.archived:
             newly_archived.append(new_local)
         copied += 1
-        log(f"  + {s.title}  ({note})")
+        log(f"  {'  - ' if parent in new_ids else '+ '}{s.title}  ({note})")
 
     if newly_archived and not dry_run:
         idx = dst_dir / "archived-sessions.idx"

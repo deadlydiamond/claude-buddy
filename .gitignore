@@ -1,8 +1,12 @@
-__pycache__/
+
 *.pyc
-build/
-dist/
 *.spec
-.venv/
-claude-chats-md/
 .DS_Store
+.claude/
+.venv/
+__pycache__/
+build/
+claude-chats-md/
+claude_session_copy/web/
+dist/
+node_modules/

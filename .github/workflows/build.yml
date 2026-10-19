@@ -24,42 +24,65 @@ jobs:
             asset: ClaudeSessionCopy-macos-apple-silicon
           - os: macos-15-intel
             asset: ClaudeSessionCopy-macos-intel
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             asset: ClaudeSessionCopy-linux-x64
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend (Vue + PrimeVue)
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install build tools
-        run: python -m pip install --upgrade pip pyinstaller
+      - name: Linux system libraries for the GTK web view
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgirepository1.0-dev libcairo2-dev pkg-config gir1.2-webkit2-4.1
+
+      - name: Install Python dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip pyinstaller
+          if [ "$RUNNER_OS" = "Linux" ]; then pip install "pywebview[gtk]==6.2.1"; else pip install -r requirements.txt; fi
 
       - name: Tests
         run: |
-          python -c "import tkinter; print('Tk', tkinter.TkVersion)"
           python -m unittest discover -s tests -v
           python -m claude_session_copy --version
+          python -c "import webview, pathlib; assert pathlib.Path('claude_session_copy/web/index.html').exists()"
 
       - name: Build (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          pyinstaller --noconfirm --onefile --windowed --name ClaudeSessionCopy run.py
+          pyinstaller --noconfirm --onefile --windowed --name ClaudeSessionCopy \
+            --add-data "claude_session_copy/web:claude_session_copy/web" run.py
           mkdir -p out && cp dist/ClaudeSessionCopy.exe "out/${{ matrix.asset }}.exe"
 
       - name: Build (macOS)
         if: runner.os == 'macOS'
         run: |
           pyinstaller --noconfirm --windowed --name "Claude Session Copy" \
-            --osx-bundle-identifier io.github.shivanshtalwar0.claudesessioncopy run.py
+            --osx-bundle-identifier io.github.shivanshtalwar0.claudesessioncopy \
+            --add-data "claude_session_copy/web:claude_session_copy/web" run.py
           mkdir -p out && ditto -c -k --keepParent "dist/Claude Session Copy.app" "out/${{ matrix.asset }}.zip"
 
       - name: Build (Linux)
         if: runner.os == 'Linux'
         run: |
-          pyinstaller --noconfirm --onefile --name claude-session-copy run.py
+          pyinstaller --noconfirm --onefile --name claude-session-copy \
+            --add-data "claude_session_copy/web:claude_session_copy/web" run.py
           mkdir -p out && tar -czf "out/${{ matrix.asset }}.tar.gz" -C dist claude-session-copy
 
       - uses: actions/upload-artifact@v4

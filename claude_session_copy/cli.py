@@ -7,7 +7,9 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .core import Paths, copy_sessions, export_to_markdown, fmt_ts, list_accounts, load_sessions, resolve_org
+from .names import load_names
+from .core import (Paths, children_map, copy_sessions, export_to_markdown, fmt_ts, list_accounts, load_sessions,
+                   resolve_org, with_descendants)
 
 
 def _paths(args) -> Paths:
@@ -24,21 +26,37 @@ def cmd_list(args) -> None:
     accounts = list_accounts(paths)
     if not accounts:
         sys.exit(f"No Claude desktop Code sessions found in {paths.sessions_dir}")
+    names = load_names(paths.app_dir)
     for a in accounts:
-        print(f"account {a.uuid}{'  (currently signed in)' if a.signed_in else ''}")
+        email = names.emails.get(a.uuid)
+        print(f"account {a.uuid}{f'  {email}' if email else ''}{'  (currently signed in)' if a.signed_in else ''}")
         for o in a.orgs:
             arch = sum(s.archived for s in o.sessions)
-            print(f"  org {o.uuid}   {len(o.sessions)} sessions ({arch} archived)")
+            info = names.orgs.get(o.uuid)
+            label = f"  {info.name}{f' · {info.plan}' if info.plan else ''}" if info else ""
+            print(f"  org {o.uuid}{label}   {len(o.sessions)} sessions ({arch} archived)")
             for s in o.sessions[:3]:
                 print(f"      - {s.title}   [{fmt_ts(s.last_activity)}]")
         print()
 
 
 def cmd_sessions(args) -> None:
-    for s in load_sessions(resolve_org(_paths(args), args.src)):
+    sessions = load_sessions(resolve_org(_paths(args), args.src))
+    ids = {s.id for s in sessions}
+    kids = children_map(sessions)
+
+    def show(s, depth: int) -> None:
         if s.archived and not args.include_archived:
-            continue
-        print(f"{s.id}  {fmt_ts(s.last_activity)}  {s.title}{' [archived]' if s.archived else ''}\n    cwd: {s.cwd}")
+            return
+        pad = "    " * depth
+        mark = "└─ " if depth else ""
+        print(f"{pad}{mark}{s.id}  {fmt_ts(s.last_activity)}  {s.title}{' [archived]' if s.archived else ''}")
+        for k in kids.get(s.id, []):
+            show(k, depth + 1)
+
+    for s in sessions:
+        if s.parent_id not in ids:
+            show(s, 0)
 
 
 def cmd_copy(args) -> None:
@@ -53,6 +71,8 @@ def cmd_copy(args) -> None:
         sys.exit("Pass --all or one or more --session IDs (see the `sessions` command)")
     if not picked:
         sys.exit("Nothing to copy")
+    if not args.no_children:
+        picked = with_descendants(sessions, [s.id for s in picked])
     copy_sessions(paths, src, dst, picked, share_transcript=args.share_transcript,
                   title_suffix=args.title_suffix, dry_run=args.dry_run)
 
@@ -64,7 +84,7 @@ def cmd_chats(args) -> None:
 
 
 def cmd_gui(_args) -> None:
-    from .gui import main
+    from .app import main
     main()
 
 
@@ -92,6 +112,8 @@ def main(argv: list[str] | None = None) -> None:
     cp.add_argument("--include-archived", action="store_true")
     cp.add_argument("--share-transcript", action="store_true",
                     help="reuse the original transcript instead of cloning it")
+    cp.add_argument("--no-children", action="store_true",
+                    help="don't automatically include sub-sessions of the selected sessions")
     cp.add_argument("--title-suffix", default="")
     cp.add_argument("--dry-run", action="store_true")
     cp.set_defaults(fn=cmd_copy)
