@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /og.html
 
-Sitemap: https://shivanshtalwar0.github.io/claude-buddy/sitemap.xml
+Sitemap: https://claudebuddy.januscaler.com/sitemap.xml

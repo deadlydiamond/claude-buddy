@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://shivanshtalwar0.github.io/claude-buddy/">
+  <a href="https://claudebuddy.januscaler.com/">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="docs/assets/lockup-dark.png">
       <img src="docs/assets/lockup.png" alt="Claude Buddy" width="300">
@@ -16,7 +16,7 @@
   <a href="https://github.com/shivanshtalwar0/claude-buddy/releases/latest"><img alt="Download" src="https://img.shields.io/github/v/release/shivanshtalwar0/claude-buddy?label=download&color=f17448"></a>
   <img alt="Windows, macOS, Linux" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-14263a">
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-14263a"></a>
-  <a href="https://shivanshtalwar0.github.io/claude-buddy/"><img alt="Website" src="https://img.shields.io/badge/website-claude--buddy-f17448"></a>
+  <a href="https://claudebuddy.januscaler.com/"><img alt="Website" src="https://img.shields.io/badge/website-claude--buddy-f17448"></a>
 </p>
 
 <p align="center">
